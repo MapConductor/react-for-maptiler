@@ -115,7 +115,7 @@ export class MapTilerViewState
   }
 }
 
-export function useMapTilerViewState(params: MapTilerViewStateParams = {}): MapTilerViewState {
+export function useMapTilerViewState(params: MapTilerViewStateParams = {}): MapTilerViewStateInterface {
   const [state] = useState(() => new MapTilerViewState(params));
   return state;
 }

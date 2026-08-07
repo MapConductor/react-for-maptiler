@@ -1,6 +1,7 @@
 import * as maplibregl from 'maplibre-gl';
 import {
   CircleManager,
+  MapProjection,
   MapProvider,
   MarkerManager,
   MarkerTilingOptions,
@@ -46,7 +47,7 @@ export interface MapTilerConfig extends MapConfig {
   minZoom?: number;
   /** Restricts panning/zooming so the viewport cannot leave this rectangle. */
   restrictBounds?: GeoRectBounds;
-  projection?: 'mercator' | 'globe';
+  projection?: MapProjection;
   markerTilingOptions?: MarkerTilingOptions;
 }
 
@@ -109,7 +110,9 @@ export class MapTilerProvider extends MapProvider {
 
     await new Promise<void>((resolve, reject) => {
       map.once('load', () => {
-        map.setProjection({ type: config.projection || 'mercator' });
+        map.setProjection({
+          type: config.projection === MapProjection.Globe ? 'globe' : 'mercator',
+        });
         resolve();
       });
       // If destroy() is called before load fires, reject with the sentinel so the
@@ -147,6 +150,7 @@ export class MapTilerProvider extends MapProvider {
       rasterLayerController,
       styleReadyRef,
       config.initCameraPosition?.tilt ?? null,
+      config.projection ?? MapProjection.Mercator,
     );
     return this.controller;
   }

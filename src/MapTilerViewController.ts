@@ -28,6 +28,7 @@ import {
   type GlGestureHandlers,
   applyGlMapUISettings,
   isEmptyCameraRestriction,
+  MapProjection,
 } from '@mapconductor/js-sdk-core';
 import { ZoomAltitudeConverter } from './zoom/ZoomAltitudeConverter';
 import { MapTilerMapViewHolder } from './MapTilerMapViewHolder';
@@ -61,6 +62,8 @@ export class MapTilerViewController
   private initialized = false;
   private logicalTiltHint: number | null = null;
   private readonly styleReadyRef: { current: boolean };
+  /** 現在の投影法。android-sdk の MapboxMapViewController の projection と同じ役割。 */
+  private projection: MapProjection;
 
   readonly holder: MapTilerMapViewHolder;
   private readonly markerController: MapTilerMarkerController;
@@ -82,6 +85,7 @@ export class MapTilerViewController
     rasterLayerController: MapTilerRasterLayerController,
     styleReadyRef: { current: boolean } = { current: true },
     logicalTiltHint: number | null = null,
+    projection: MapProjection = MapProjection.Mercator,
   ) {
     super();
     this.mapInstance = holder.map;
@@ -90,6 +94,7 @@ export class MapTilerViewController
     this.holder.setController(this);
     this.styleReadyRef = styleReadyRef;
     this.logicalTiltHint = logicalTiltHint;
+    this.projection = projection;
     this.markerController = markerController;
     this.markerEventController = markerEventController;
     this.circleController = circleController;
@@ -109,6 +114,19 @@ export class MapTilerViewController
 
   getMap(): maplibregl.Map {
     return this.mapInstance;
+  }
+
+  /**
+   * 投影法を切り替える。android-sdk の `MapboxMapViewController.setProjection` /
+   * ios-sdk の `Coordinator.setProjection` と同じく、同値なら何もしない。
+   * maplibre-gl は mapbox-gl と違い `{ type }` を受け取る。
+   */
+  setProjection(projection: MapProjection): void {
+    if (this.projection === projection) return;
+    this.projection = projection;
+    this.mapInstance.setProjection({
+      type: projection === MapProjection.Globe ? 'globe' : 'mercator',
+    });
   }
 
   applyUISettings(settings: MapUISettings): void {
