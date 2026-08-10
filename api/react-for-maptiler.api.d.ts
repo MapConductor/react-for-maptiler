@@ -1,6 +1,6 @@
 import * as maplibregl from 'maplibre-gl';
 export { setWorkerUrl as setMapTilerWorkerUrl } from 'maplibre-gl';
-import { MapConfig, GeoRectBounds, MapProjection, MarkerTilingOptions, MapProvider, MapViewControllerInterface, MapViewHolderBase, GeoPointInterface, Offset, GeoPoint, MarkerEntity, AbstractMarkerOverlayRenderer, MarkerManager, AddParams, ChangeParams, MarkerState, BitmapIcon, AbstractMarkerController, RasterLayerState, OnMarkerEventHandler, CircleEntity, AbstractCircleOverlayRenderer, CircleManagerInterface, CircleState, CircleController, PolylineEntity, AbstractPolylineOverlayRenderer, PolylineManagerInterface, PolylineState, PolylineController, MapCameraPosition, PolygonEntity, AbstractPolygonOverlayRenderer, PolygonManagerInterface, PolygonState, SlottedOverlayController, OnPolygonEventHandler, OverlayKind, AbstractGroundImageOverlayRenderer, GroundImageState, GroundImageEntity, RasterLayerOverlayRenderer, RasterLayerAddParams, RasterLayerChangeParams, RasterLayerEntity, RasterLayerController, RasterHeaderSupport, BaseMapViewController, MarkerCapable, CircleCapable, PolylineCapable, PolygonCapable, GroundImageCapable, RasterLayerCapable, MapUISettings, OnMapInitializedHandler, MarkerAnimationOverlayHost, OnGroundImageEventHandler, CameraRestriction, MapDesignTypeInterface, AttributionRule, MapViewStateInterface, MapViewState, MapViewBaseProps, WebMercatorZoomAltitudeConverter } from '@mapconductor/js-sdk-core';
+import { MapConfig, GeoRectBounds, MapProjection, MarkerTilingOptions, MapProvider, MapViewControllerInterface, MapViewHolderBase, GeoPointInterface, Offset, GeoPoint, MarkerEntity, AbstractMarkerOverlayRenderer, MarkerManager, AddParams, ChangeParams, MarkerState, BitmapIcon, AbstractMarkerController, RasterLayerState, OnMarkerEventHandler, CircleEntity, AbstractCircleOverlayRenderer, CircleManagerInterface, CircleState, CircleController, PolylineEntity, AbstractPolylineOverlayRenderer, PolylineManagerInterface, PolylineState, PolylineController, MapCameraPosition, PolygonEntity, AbstractPolygonOverlayRenderer, PolygonManagerInterface, PolygonState, SlottedOverlayController, OnPolygonEventHandler, OverlayKind, OverlayHit, AbstractGroundImageOverlayRenderer, GroundImageState, GroundImageEntity, RasterLayerOverlayRenderer, RasterLayerAddParams, RasterLayerChangeParams, RasterLayerEntity, RasterLayerController, RasterHeaderSupport, BaseMapViewController, MarkerCapable, CircleCapable, PolylineCapable, PolygonCapable, GroundImageCapable, RasterLayerCapable, MapUISettings, OnMapInitializedHandler, MarkerAnimationOverlayHost, OnGroundImageEventHandler, CameraRestriction, MapDesignTypeInterface, AttributionRule, MapViewStateInterface, MapViewState, MapViewBaseProps, WebMercatorZoomAltitudeConverter } from '@mapconductor/js-sdk-core';
 import React from 'react';
 
 interface MapTilerConfig extends MapConfig {
@@ -402,6 +402,11 @@ declare class MapTilerPolygonConductor implements SlottedOverlayController {
     compositionAny(data: unknown[]): Promise<void>;
     updateAny(state: unknown): Promise<void>;
     setClickListenerAny(listener: unknown): void;
+    /**
+     * タップの当たり判定と配送。カスケードの 1 段（{@link OverlayHitResolver}）。
+     * 判定は既存の handleMapClick と同じ（point-in-polygon、穴と zIndex を考慮）。
+     */
+    resolveTap(position: GeoPointInterface): OverlayHit | null;
 }
 
 declare class MapTilerGroundImageOverlayRenderer extends AbstractGroundImageOverlayRenderer<MapTilerMapViewHolder, string> {
@@ -447,6 +452,11 @@ declare class MapTilerGroundImageController implements SlottedOverlayController 
     compositionAny(data: unknown[]): Promise<void>;
     updateAny(state: unknown): Promise<void>;
     setClickListenerAny(_listener: unknown): void;
+    /**
+     * タップの当たり判定と配送。カスケードの 1 段（{@link OverlayHitResolver}）。
+     * 判定は既存の dispatchClick と同じ（後ろに追加したものから見る = 上に載る方が先）。
+     */
+    resolveTap(position: GeoPointInterface): OverlayHit | null;
 }
 
 /** GL のソース／レイヤー ID の対。android-sdk の MapTilerRasterLayerHandle と同一。 */
