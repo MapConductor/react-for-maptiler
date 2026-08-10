@@ -554,6 +554,13 @@ declare class MapTilerViewController extends BaseMapViewController implements Ma
      */
     setCameraRestriction(restriction: CameraRestriction | null): void;
     destroy(): void;
+    /**
+     * マーカーのヒットテストと配送。カスケードの先頭。
+     *
+     * ズームとポインタ種別（タッチかマウスかで許容半径が変わる）が要るので
+     * コアの既定ではなくここで持つ。判定自体は core の MarkerManager。
+     */
+    protected dispatchMarkerTap(point: GeoPoint): boolean;
 }
 
 interface MapTilerMapDesignType extends MapDesignTypeInterface<string> {
