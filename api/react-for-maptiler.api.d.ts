@@ -1,6 +1,6 @@
 import * as maplibregl from 'maplibre-gl';
 export { setWorkerUrl as setMapTilerWorkerUrl } from 'maplibre-gl';
-import { MapConfig, GeoRectBounds, MapProjection, MarkerTilingOptions, MapProvider, MapViewControllerInterface, MapViewHolderBase, GeoPointInterface, Offset, GeoPoint, MarkerEntity, AbstractMarkerOverlayRenderer, MarkerManager, AddParams, ChangeParams, MarkerState, BitmapIcon, AbstractMarkerController, RasterLayerState, OnMarkerEventHandler, CircleEntity, AbstractCircleOverlayRenderer, CircleManagerInterface, CircleState, CircleController, PolylineEntity, AbstractPolylineOverlayRenderer, PolylineManagerInterface, PolylineState, PolylineController, MapCameraPosition, PolygonEntity, AbstractPolygonOverlayRenderer, PolygonManagerInterface, PolygonState, OnPolygonEventHandler, AbstractGroundImageOverlayRenderer, GroundImageState, GroundImageEntity, RasterLayerOverlayRenderer, RasterLayerAddParams, RasterLayerChangeParams, RasterLayerEntity, RasterLayerController, RasterHeaderSupport, BaseMapViewController, MarkerCapable, CircleCapable, PolylineCapable, PolygonCapable, GroundImageCapable, RasterLayerCapable, MapUISettings, OnMapInitializedHandler, MarkerAnimationOverlayHost, OnCircleEventHandler, OnPolylineEventHandler, OnGroundImageEventHandler, CameraRestriction, MapDesignTypeInterface, AttributionRule, MapViewStateInterface, MapViewState, MapViewHolder, MapViewBaseProps, WebMercatorZoomAltitudeConverter } from '@mapconductor/js-sdk-core';
+import { MapConfig, GeoRectBounds, MapProjection, MarkerTilingOptions, MapProvider, MapViewControllerInterface, MapViewHolderBase, GeoPointInterface, Offset, GeoPoint, MarkerEntity, AbstractMarkerOverlayRenderer, MarkerManager, AddParams, ChangeParams, MarkerState, BitmapIcon, AbstractMarkerController, RasterLayerState, OnMarkerEventHandler, CircleEntity, AbstractCircleOverlayRenderer, CircleManagerInterface, CircleState, CircleController, PolylineEntity, AbstractPolylineOverlayRenderer, PolylineManagerInterface, PolylineState, PolylineController, MapCameraPosition, PolygonEntity, AbstractPolygonOverlayRenderer, PolygonManagerInterface, PolygonState, OnPolygonEventHandler, AbstractGroundImageOverlayRenderer, GroundImageState, GroundImageEntity, RasterLayerOverlayRenderer, RasterLayerAddParams, RasterLayerChangeParams, RasterLayerEntity, RasterLayerController, RasterHeaderSupport, BaseMapViewController, MarkerCapable, CircleCapable, PolylineCapable, PolygonCapable, GroundImageCapable, RasterLayerCapable, MapUISettings, OnMapInitializedHandler, MarkerAnimationOverlayHost, OnCircleEventHandler, OnPolylineEventHandler, OnGroundImageEventHandler, CameraRestriction, MapDesignTypeInterface, AttributionRule, MapViewStateInterface, MapViewState, MapViewBaseProps, WebMercatorZoomAltitudeConverter } from '@mapconductor/js-sdk-core';
 import React from 'react';
 
 interface MapTilerConfig extends MapConfig {
@@ -603,24 +603,11 @@ interface MapTilerViewStateParams {
     cameraPosition?: MapCameraPosition;
 }
 declare class MapTilerViewState extends MapViewState<MapTilerMapDesignType> implements MapTilerViewStateInterface {
-    readonly id: string;
     readonly apiKey: string;
-    private _cameraPosition;
     private _mapDesignType;
-    private _controller;
-    private _cameraPositionChangeListener;
     constructor({ id, apiKey, mapDesignType, cameraPosition, }?: MapTilerViewStateParams);
-    get cameraPosition(): MapCameraPosition;
     get mapDesignType(): MapTilerMapDesignType;
     set mapDesignType(value: MapTilerMapDesignType);
-    moveCameraTo(position: GeoPoint, durationMillis?: number): void;
-    moveCameraTo(cameraPosition: MapCameraPosition, durationMillis?: number): void;
-    getMapViewHolder(): MapViewHolder<unknown, unknown> | null;
-    fitBounds(bounds: GeoRectBounds, padding?: number): void;
-    setController(ctrl: MapViewControllerInterface | null): void;
-    updateCameraPosition(camera: MapCameraPosition): void;
-    setCameraPositionChangeListener(listener: ((camera: MapCameraPosition) => void) | null): void;
-    private resolveCameraPosition;
 }
 declare function useMapTilerViewState(params?: MapTilerViewStateParams): MapTilerViewStateInterface;
 
