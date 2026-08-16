@@ -1,7 +1,9 @@
 import * as maplibregl from 'maplibre-gl';
 export { setWorkerUrl as setMapTilerWorkerUrl } from 'maplibre-gl';
-import { MapConfig, GeoRectBounds, MapProjection, MarkerTilingOptions, MapProvider, MapViewControllerInterface, MapViewHolderBase, GeoPointInterface, Offset, GeoPoint, MarkerEntity, AbstractMarkerOverlayRenderer, MarkerManager, AddParams, ChangeParams, MarkerState, BitmapIcon, AbstractMarkerController, RasterLayerState, DefaultMarkerEventController, CircleEntity, AbstractCircleOverlayRenderer, CircleManagerInterface, CircleState, CircleController, PolylineEntity, AbstractPolylineOverlayRenderer, PolylineManagerInterface, PolylineState, PolylineController, MapCameraPosition, PolygonEntity, AbstractPolygonOverlayRenderer, PolygonManagerInterface, PolygonState, SlottedOverlayController, OnPolygonEventHandler, OverlayKind, OverlayHit, AbstractGroundImageOverlayRenderer, GroundImageState, GroundImageEntity, RasterLayerOverlayRenderer, RasterLayerAddParams, RasterLayerChangeParams, RasterLayerEntity, RasterLayerController, RasterHeaderSupport, BaseMapViewController, MarkerCapable, CircleCapable, PolylineCapable, PolygonCapable, GroundImageCapable, RasterLayerCapable, MapUISettings, OnMapInitializedHandler, OnMarkerEventHandler, MarkerAnimationOverlayHost, OnGroundImageEventHandler, CameraRestriction, MapDesignTypeInterface, AttributionRule, MapViewStateInterface, MapViewState, MapViewBaseProps, WebMercatorZoomAltitudeConverter } from '@mapconductor/js-sdk-core';
+import { MapConfig, GeoRectBounds, MapProjection, MarkerTilingOptions, MapProvider, MapViewControllerInterface, MapViewHolderBase, GeoPointInterface, Offset, GeoPoint, MarkerEntity, AbstractMarkerOverlayRenderer, MarkerManager, AddParams, ChangeParams, MarkerState, BitmapIcon, AbstractMarkerController, RasterLayerState, DefaultMarkerEventController, CircleEntity, AbstractCircleOverlayRenderer, CircleManagerInterface, CircleState, CircleController, PolylineEntity, AbstractPolylineOverlayRenderer, PolylineManagerInterface, PolylineState, PolylineController, MapCameraPosition, PolygonEntity, AbstractPolygonOverlayRenderer, PolygonManagerInterface, PolygonState, SlottedOverlayController, OnPolygonEventHandler, OverlayKind, OverlayHit, AbstractGroundImageOverlayRenderer, GroundImageState, GroundImageEntity, RasterLayerOverlayRenderer, RasterLayerAddParams, RasterLayerChangeParams, RasterLayerEntity, RasterLayerController, RasterHeaderSupport, BaseMapViewController, MarkerCapable, CircleCapable, PolylineCapable, PolygonCapable, GroundImageCapable, RasterLayerCapable, MapUISettings, OnMapInitializedHandler, OnMarkerEventHandler, MarkerAnimationOverlayHost, OnGroundImageEventHandler, CameraRestriction, MapViewBaseProps, WebMercatorZoomAltitudeConverter } from '@mapconductor/js-sdk-core';
 import React from 'react';
+import { MapTilerViewStateInterface } from './state.js';
+export { MapTilerDesign, MapTilerMapDesignType, MapTilerViewState, useMapTilerViewState } from './state.js';
 
 interface MapTilerConfig extends MapConfig {
     /** MapTiler Cloud API key. Used to build the style.json URL when [styleId] is set. */
@@ -469,6 +471,17 @@ declare class MapTilerRasterLayerOverlayRenderer implements RasterLayerOverlayRe
     onPostProcess(): Promise<void>;
     private addLayer;
     private updateLayer;
+    /**
+     * スタイル再読込中に頼まれた削除の保留分。
+     *
+     * 追加は「ハンドルだけ返して resync が貼り直す」で済むが、削除は manager から
+     * 先に消えるため resync では拾えない。黙って捨てると、スタイル差分適用で
+     * 生き残った GL レイヤが画面に残り続ける（RasterLayer ページで選んだレリーフが
+     * GeoJSON Layer ページにも出る、という形で顕在化した）。ここで保留しておき、
+     * スタイルが編集可能になった最初の操作でまとめて消す。
+     */
+    private pendingRemovals;
+    private flushPendingRemovals;
     private removeLayer;
 }
 
@@ -549,62 +562,6 @@ declare class MapTilerViewController extends BaseMapViewController implements Ma
     protected dispatchMarkerTap(point: GeoPoint): boolean;
 }
 
-interface MapTilerMapDesignType extends MapDesignTypeInterface<string> {
-    /** MapTiler Cloud map id (e.g. 'streets-v2', 'satellite'). */
-    readonly styleId: string;
-}
-/**
- * MapTiler map design (a MapTiler Cloud reference style).
- *
- * `id` / `getValue()` is the stable key (used for save/restore and as the map
- * re-init trigger); the value actually loaded is the MapTiler style.json for
- * [styleId], resolved with the view state's API key. Mirrors android
- * `MapTilerDesign` (Streets / StreetsDark / Satellite / …) one-to-one.
- */
-declare class MapTilerDesign implements MapTilerMapDesignType {
-    readonly id: string;
-    readonly styleId: string;
-    readonly attributionRules: readonly AttributionRule[];
-    constructor(id: string, styleId: string, attributionRules?: readonly AttributionRule[]);
-    getValue(): string;
-    static readonly Streets: MapTilerDesign;
-    static readonly StreetsDark: MapTilerDesign;
-    static readonly StreetsLight: MapTilerDesign;
-    static readonly Basic: MapTilerDesign;
-    static readonly Bright: MapTilerDesign;
-    static readonly Satellite: MapTilerDesign;
-    static readonly Outdoor: MapTilerDesign;
-    static readonly Winter: MapTilerDesign;
-    static readonly Topo: MapTilerDesign;
-    static readonly Toner: MapTilerDesign;
-    static readonly Dataviz: MapTilerDesign;
-    static readonly Backdrop: MapTilerDesign;
-    static readonly Ocean: MapTilerDesign;
-    static readonly Landscape: MapTilerDesign;
-    static readonly Aquarelle: MapTilerDesign;
-    static readonly OpenStreetMap: MapTilerDesign;
-}
-
-interface MapTilerViewStateInterface extends MapViewStateInterface<MapTilerMapDesignType> {
-    /** MapTiler Cloud API key used to load the style/tiles. */
-    readonly apiKey: string;
-}
-interface MapTilerViewStateParams {
-    id?: string;
-    /** MapTiler Cloud API key. Required for the map/tiles to load. */
-    apiKey?: string;
-    mapDesignType?: MapTilerMapDesignType;
-    cameraPosition?: MapCameraPosition;
-}
-declare class MapTilerViewState extends MapViewState<MapTilerMapDesignType> implements MapTilerViewStateInterface {
-    readonly apiKey: string;
-    private _mapDesignType;
-    constructor({ id, apiKey, mapDesignType, cameraPosition, }?: MapTilerViewStateParams);
-    get mapDesignType(): MapTilerMapDesignType;
-    set mapDesignType(value: MapTilerMapDesignType);
-}
-declare function useMapTilerViewState(params?: MapTilerViewStateParams): MapTilerViewStateInterface;
-
 interface MapTilerMapViewProps extends MapViewBaseProps<MapTilerViewStateInterface> {
     maxZoom?: number;
     minZoom?: number;
@@ -638,4 +595,4 @@ declare class ZoomAltitudeConverter extends WebMercatorZoomAltitudeConverter {
     static googleZoomToMaplibreZoom(googleZoom: number): number;
 }
 
-export { type MapTilerConfig, MapTilerDesign, type MapTilerMapDesignType, MapTilerMapView, MapTilerMapView2D, type MapTilerMapViewProps, MapTilerProvider, MapTilerViewController, MapTilerViewState, type MapTilerViewStateInterface, ZoomAltitudeConverter, useMapTilerViewState };
+export { type MapTilerConfig, MapTilerMapView, MapTilerMapView2D, type MapTilerMapViewProps, MapTilerProvider, MapTilerViewController, MapTilerViewStateInterface, ZoomAltitudeConverter };
