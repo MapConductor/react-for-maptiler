@@ -20,7 +20,7 @@ Pass it to the view state:
 
 ```tsx
 const state = useMapTilerViewState({
-  apiKey: import.meta.env.VITE_MAPTILER,
+  apiKey: MAPTILER,
   mapDesignType: MapTilerDesign.Streets,
   cameraPosition,
 });
@@ -37,9 +37,13 @@ import {
 import '@mapconductor/react-for-maptiler/style.css';
 import { MapCameraPosition, createGeoPoint } from '@mapconductor/js-sdk-core';
 
+// Your own key. Read it from your environment however your build tool does
+// it, and keep it out of source control.
+const MAPTILER = '…';
+
 function Map() {
   const state = useMapTilerViewState({
-    apiKey: import.meta.env.VITE_MAPTILER,
+    apiKey: MAPTILER,
     mapDesignType: MapTilerDesign.Streets,
     cameraPosition: MapCameraPosition.create({
       position: createGeoPoint({ latitude: 35.6812, longitude: 139.7671 }),
