@@ -13,7 +13,8 @@ import {
   withRasterHeaderTransform,
 } from '@mapconductor/js-sdk-core';
 import { MapTilerViewController } from './MapTilerViewController';
-import { buildStyleJsonURL } from './MapTilerDesign';
+import { MapTilerDesign, buildStyleJsonURL } from './MapTilerDesign';
+import { BLANK_MAP_STYLE } from '@mapconductor/js-sdk-core';
 import { ZoomAltitudeConverter } from './zoom/ZoomAltitudeConverter';
 import { toCameraPosition } from './MapCameraPosition';
 import { MapTilerMapViewHolder } from './MapTilerMapViewHolder';
@@ -89,7 +90,9 @@ export class MapTilerProvider extends MapProvider {
     // URL from the map id + API key unless an explicit style was supplied.
     const style =
       config.style ??
-      buildStyleJsonURL(config.styleId ?? 'streets-v2', config.apiKey ?? '');
+      (config.styleId === MapTilerDesign.None.styleId
+        ? BLANK_MAP_STYLE
+        : buildStyleJsonURL(config.styleId ?? 'streets-v2', config.apiKey ?? ''));
     const map = new maplibregl.Map({
       container,
       style,

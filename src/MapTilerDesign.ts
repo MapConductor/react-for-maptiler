@@ -42,6 +42,8 @@ export class MapTilerDesign implements MapTilerMapDesignType {
     return `mapDesign_id=${this.id},style=${this.styleId}`;
   }
 
+  /** No basemap: a background colour and nothing else. */
+  static readonly None = new MapTilerDesign('None', 'none');
   static readonly Streets = new MapTilerDesign('Streets', 'streets-v2');
   static readonly StreetsDark = new MapTilerDesign('StreetsDark', 'streets-v2-dark');
   static readonly StreetsLight = new MapTilerDesign('StreetsLight', 'streets-v2-light');
