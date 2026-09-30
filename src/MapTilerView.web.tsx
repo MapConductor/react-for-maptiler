@@ -27,7 +27,9 @@ import {
   type MapViewControllerInterface,
   mapViewStateInternal,
 } from '@mapconductor/js-sdk-core';
+import { VectorStyleAsDesign, VectorStyleSupportKey } from '@mapconductor/js-sdk-core';
 import { MapTilerProvider, MapTilerConfig } from './MapTilerProvider';
+import { MapTilerDesign } from './MapTilerDesign';
 import type { MapTilerViewStateInterface } from './MapTilerViewState';
 import type { MapTilerViewController } from './MapTilerViewController';
 
@@ -114,6 +116,7 @@ function InternalMapTilerMapView({
       container: containerRef.current,
       apiKey: state.apiKey,
       styleId: state.mapDesignType.styleId,
+      style: state.mapDesignType.style as MapTilerConfig['style'],
       maxZoom,
       minZoom,
       restrictBounds,
@@ -244,6 +247,17 @@ function InternalMapTilerMapView({
   // so that toScreenOffset() recalculates bubble positions.
   void cameraTick;
 
+
+  // MapTiler draws vector styles natively: a layer with a style to show hands
+  // it over instead of rasterising it. Registered on mount, before the map
+  // is ready, so a layer reading the registry on the ready re-render finds it.
+  useEffect(() => {
+    state.serviceRegistry.put(
+      VectorStyleSupportKey,
+      new VectorStyleAsDesign(state, (style, key, rules) => new MapTilerDesign(key, key, rules, style)),
+    );
+    return () => state.serviceRegistry.remove(VectorStyleSupportKey);
+  }, [state]);
 
   // マーカー描画 capability をこのマップのサービスレジストリへ登録する。
   // marker-clustering などの拡張がここから解決する
