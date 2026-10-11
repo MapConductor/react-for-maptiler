@@ -1,9 +1,9 @@
 import * as maplibregl from 'maplibre-gl';
 export { setWorkerUrl as setMapTilerWorkerUrl } from 'maplibre-gl';
 import { MapConfig, GeoRectBounds, MapProjection, MarkerTilingOptions, MapProvider, MapViewControllerInterface, MapViewHolderBase, GeoPointInterface, Offset, GeoPoint, MarkerEntity, AbstractMarkerOverlayRenderer, MarkerManager, AddParams, ChangeParams, MarkerState, BitmapIcon, AbstractMarkerController, RasterLayerState, DefaultMarkerEventController, CircleEntity, AbstractCircleOverlayRenderer, CircleManagerInterface, CircleState, CircleController, PolylineEntity, AbstractPolylineOverlayRenderer, PolylineManagerInterface, PolylineState, PolylineController, MapCameraPosition, PolygonEntity, AbstractPolygonOverlayRenderer, PolygonManagerInterface, PolygonState, SlottedOverlayController, OnPolygonEventHandler, OverlayKind, OverlayHit, AbstractGroundImageOverlayRenderer, GroundImageState, GroundImageEntity, RasterLayerOverlayRenderer, RasterLayerAddParams, RasterLayerChangeParams, RasterLayerEntity, RasterLayerController, RasterHeaderSupport, BaseMapViewController, MarkerCapable, CircleCapable, PolylineCapable, PolygonCapable, GroundImageCapable, RasterLayerCapable, MapUISettings, OnMapInitializedHandler, OnMarkerEventHandler, MarkerAnimationOverlayHost, OnGroundImageEventHandler, CameraRestriction, MapViewBaseProps, WebMercatorZoomAltitudeConverter } from '@mapconductor/js-sdk-core';
+import { MapTilerMapDesignType, MapTilerViewStateInterface } from './state.js';
+export { MapTilerDesign, MapTilerViewState, useMapTilerViewState } from './state.js';
 import React from 'react';
-import { MapTilerViewStateInterface } from './state.js';
-export { MapTilerDesign, MapTilerMapDesignType, MapTilerViewState, useMapTilerViewState } from './state.js';
 
 interface MapTilerConfig extends MapConfig {
     /** MapTiler Cloud API key. Used to build the style.json URL when [styleId] is set. */
@@ -518,6 +518,7 @@ declare class MapTilerRasterLayerController extends RasterLayerController<MapTil
 
 declare class MapTilerViewController extends BaseMapViewController implements MapViewControllerInterface, MarkerCapable, CircleCapable, PolylineCapable, PolygonCapable, GroundImageCapable, RasterLayerCapable {
     private readonly mapInstance;
+    private readonly apiKey;
     private initialized;
     private logicalTiltHint;
     private readonly styleReadyRef;
@@ -533,7 +534,15 @@ declare class MapTilerViewController extends BaseMapViewController implements Ma
     private readonly rasterLayerController;
     constructor(holder: MapTilerMapViewHolder, markerController: MapTilerMarkerController, markerEventController: MapTilerMarkerEventController, circleController: MapTilerCircleController, polylineController: MapTilerPolylineController, polygonController: MapTilerPolygonConductor, groundImageController: MapTilerGroundImageController, rasterLayerController: MapTilerRasterLayerController, styleReadyRef?: {
         current: boolean;
-    }, logicalTiltHint?: number | null, projection?: MapProjection);
+    }, logicalTiltHint?: number | null, projection?: MapProjection, 
+    /** For resolving a MapTiler Cloud design to its style URL on a live swap. */
+    apiKey?: string | null);
+    /**
+     * Swaps the style document in place; `styledata` resyncs the overlays.
+     * Same resolution as `MapTilerProvider.create`: an explicit style wins,
+     * `None` is the blank document, anything else is a MapTiler Cloud id.
+     */
+    setMapDesignType(design: MapTilerMapDesignType): void;
     getMap(): maplibregl.Map;
     /**
      * 投影法を切り替える。android-sdk の `MapboxMapViewController.setProjection` /
@@ -608,4 +617,4 @@ declare class ZoomAltitudeConverter extends WebMercatorZoomAltitudeConverter {
     static googleZoomToMaplibreZoom(googleZoom: number): number;
 }
 
-export { type MapTilerConfig, MapTilerMapView, MapTilerMapView2D, type MapTilerMapViewProps, MapTilerProvider, MapTilerViewController, MapTilerViewStateInterface, ZoomAltitudeConverter };
+export { type MapTilerConfig, MapTilerMapDesignType, MapTilerMapView, MapTilerMapView2D, type MapTilerMapViewProps, MapTilerProvider, MapTilerViewController, MapTilerViewStateInterface, ZoomAltitudeConverter };

@@ -154,6 +154,7 @@ export class MapTilerProvider extends MapProvider {
       styleReadyRef,
       config.initCameraPosition?.tilt ?? null,
       config.projection ?? MapProjection.Mercator,
+      config.apiKey ?? null,
     );
     return this.controller;
   }

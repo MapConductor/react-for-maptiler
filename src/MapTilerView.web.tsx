@@ -240,7 +240,10 @@ function InternalMapTilerMapView({
       bridgeUnsubs.current = [];
       provider.destroy();
     };
-  }, [state.mapDesignType.getValue(), state.apiKey]);
+    // Design changes are applied live via the controller (see the state's
+    // mapDesignType setter -> controller.setMapDesignType), so the map is not
+    // torn down and re-initialized when only the design changes.
+  }, [state.apiKey]);
 
   useMapUISettings(state, controller);
   // マップ生成時 config だけでなく、prop の変化にも追随させる（android-sdk 相当）。
