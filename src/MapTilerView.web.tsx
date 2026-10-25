@@ -11,9 +11,11 @@ import {
   createMapContextValue,
 } from '@mapconductor/js-sdk-react';
 import {
+  useMapViewStyle,
   useCameraRestriction,
   useMapUISettings,
   useMarkerRenderingSupport,
+  useVectorStyleMutationSupport,
 } from '@mapconductor/js-sdk-react/internal';
 import {
   MapViewBaseProps,
@@ -28,7 +30,9 @@ import {
   mapViewStateInternal,
   markerIconExtentPx,
 } from '@mapconductor/js-sdk-core';
+import { VectorStyleAsDesign, VectorStyleSupportKey } from '@mapconductor/js-sdk-core';
 import { MapTilerProvider, MapTilerConfig } from './MapTilerProvider';
+import { MapTilerDesign } from './MapTilerDesign';
 import type { MapTilerViewStateInterface } from './MapTilerViewState';
 import type { MapTilerViewController } from './MapTilerViewController';
 
@@ -62,6 +66,8 @@ interface InternalMapTilerMapViewProps extends MapTilerMapViewProps {
  */
 function InternalMapTilerMapView({
   state,
+  mapStyle,
+  onStyleDiagnostics,
   onMapLoaded,
   onMapClick,
   onMapLongClick,
@@ -83,6 +89,11 @@ function InternalMapTilerMapView({
   const [provider] = useState(() => new MapTilerProvider());
   const [scope] = useState(() => new MapViewScope());
   const [controller, setController] = useState<MapViewControllerInterface | null>(null);
+
+  // 地図の見た目。何が起きるかはこのバックエンドが宣言した能力で決まるので、
+  // ここにプロバイダ固有の分岐は無い。android-sdk の `MapViewStyleEffect`、
+  // ios-sdk の `MapViewStyleHost` と同じ役目。
+  useMapViewStyle(state, controller, mapStyle, onStyleDiagnostics);
   const [isReady, setIsReady] = useState(false);
   // `onMapLoaded` と同じ瞬間を「値」として持つ。イベントを取り逃した後から
   // マウントした子（examples の Three.js overlay 等）も読めるようにするため。
@@ -115,6 +126,7 @@ function InternalMapTilerMapView({
       container: containerRef.current,
       apiKey: state.apiKey,
       styleId: state.mapDesignType.styleId,
+      style: state.mapDesignType.style as MapTilerConfig['style'],
       maxZoom,
       minZoom,
       restrictBounds,
@@ -229,7 +241,10 @@ function InternalMapTilerMapView({
       bridgeUnsubs.current = [];
       provider.destroy();
     };
-  }, [state.mapDesignType.getValue(), state.apiKey]);
+    // Design changes are applied live via the controller (see the state's
+    // mapDesignType setter -> controller.setMapDesignType), so the map is not
+    // torn down and re-initialized when only the design changes.
+  }, [state.apiKey]);
 
   useMapUISettings(state, controller);
   // マップ生成時 config だけでなく、prop の変化にも追随させる（android-sdk 相当）。
@@ -246,11 +261,28 @@ function InternalMapTilerMapView({
   void cameraTick;
 
 
+  // MapTiler draws vector styles natively: a layer with a style to show hands
+  // it over instead of rasterising it. Registered on mount, before the map
+  // is ready, so a layer reading the registry on the ready re-render finds it.
+  useEffect(() => {
+    state.serviceRegistry.put(
+      VectorStyleSupportKey,
+      new VectorStyleAsDesign(state, (style, key, rules) => new MapTilerDesign(key, key, rules, style)),
+    );
+    return () => state.serviceRegistry.remove(VectorStyleSupportKey);
+  }, [state]);
+
   // マーカー描画 capability をこのマップのサービスレジストリへ登録する。
   // marker-clustering などの拡張がここから解決する
   // （android-sdk の *MapView.kt / ios-sdk の *MapView.swift が
   //  MarkerRenderingSupportKey を put するのと同じ位置づけ）。
   useMarkerRenderingSupport(state, scope, controller);
+
+  // This renderer can be told to change a loaded style in place, so adjusting
+  // one need not hand it a new document -- which would drop its tiles and
+  // rebuild every overlay the app added. `VectorStyle` looks this up and
+  // takes the cheap road when it is here.
+  useVectorStyleMutationSupport(state, typedControllerRef.current?.getMap() ?? null, typedControllerRef.current);
 
   return (
     <MapContext.Provider value={createMapContextValue({ controller, isReady, isLoaded, state })}>

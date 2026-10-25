@@ -1,4 +1,7 @@
 import * as maplibregl from 'maplibre-gl';
+import type { StyleSpecification } from 'maplibre-gl';
+import { MapTilerDesign, buildStyleJsonURL, type MapTilerMapDesignType } from './MapTilerDesign';
+import { BLANK_MAP_STYLE } from '@mapconductor/js-sdk-core';
 import {
   BaseMapViewController,
   type CameraRestriction,
@@ -52,6 +55,7 @@ export class MapTilerViewController
     RasterLayerCapable
 {
   private readonly mapInstance: maplibregl.Map;
+  private readonly apiKey: string | null;
   private initialized = false;
   private logicalTiltHint: number | null = null;
   private readonly styleReadyRef: { current: boolean };
@@ -79,8 +83,11 @@ export class MapTilerViewController
     styleReadyRef: { current: boolean } = { current: true },
     logicalTiltHint: number | null = null,
     projection: MapProjection = MapProjection.Mercator,
+    /** For resolving a MapTiler Cloud design to its style URL on a live swap. */
+    apiKey: string | null = null,
   ) {
     super();
+    this.apiKey = apiKey;
     this.mapInstance = holder.map;
     this.initialized = holder.map.loaded();
     this.holder = holder;
@@ -112,6 +119,20 @@ export class MapTilerViewController
       }
     };
     this.setupEventListeners();
+  }
+
+  /**
+   * Swaps the style document in place; `styledata` resyncs the overlays.
+   * Same resolution as `MapTilerProvider.create`: an explicit style wins,
+   * `None` is the blank document, anything else is a MapTiler Cloud id.
+   */
+  setMapDesignType(design: MapTilerMapDesignType): void {
+    const style =
+      design.style ??
+      (design.styleId === MapTilerDesign.None.styleId
+        ? BLANK_MAP_STYLE
+        : buildStyleJsonURL(design.styleId, this.apiKey ?? ''));
+    this.mapInstance.setStyle(style as string | StyleSpecification);
   }
 
   getMap(): maplibregl.Map {

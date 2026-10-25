@@ -3,6 +3,11 @@ import type { AttributionRule, MapDesignTypeInterface } from '@mapconductor/js-s
 export interface MapTilerMapDesignType extends MapDesignTypeInterface<string> {
   /** MapTiler Cloud map id (e.g. 'streets-v2', 'satellite'). */
   readonly styleId: string;
+  /**
+   * A style of its own -- a `style.json` URL or the parsed object -- instead
+   * of a MapTiler Cloud map. When set, `styleId` is only the design's key.
+   */
+  readonly style?: string | object;
 }
 
 /**
@@ -26,22 +31,27 @@ export function buildStyleJsonURL(styleId: string, apiKey: string): string {
 export class MapTilerDesign implements MapTilerMapDesignType {
   readonly id: string;
   readonly styleId: string;
+  readonly style?: string | object;
   readonly attributionRules: readonly AttributionRule[];
 
   constructor(
     id: string,
     styleId: string,
-    attributionRules: readonly AttributionRule[] = []
+    attributionRules: readonly AttributionRule[] = [],
+    style?: string | object
   ) {
     this.id = id;
     this.styleId = styleId;
     this.attributionRules = attributionRules;
+    this.style = style;
   }
 
   getValue(): string {
     return `mapDesign_id=${this.id},style=${this.styleId}`;
   }
 
+  /** No basemap: a background colour and nothing else. */
+  static readonly None = new MapTilerDesign('None', 'none');
   static readonly Streets = new MapTilerDesign('Streets', 'streets-v2');
   static readonly StreetsDark = new MapTilerDesign('StreetsDark', 'streets-v2-dark');
   static readonly StreetsLight = new MapTilerDesign('StreetsLight', 'streets-v2-light');
