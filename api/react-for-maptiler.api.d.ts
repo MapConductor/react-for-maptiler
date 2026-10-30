@@ -154,6 +154,8 @@ declare class MapTilerMarkerController extends AbstractMarkerController<MapTiler
     private tileRenderer;
     private tileRouteId;
     private tileVersion;
+    /** Device pixels per CSS pixel the current tiles are drawn at. */
+    private tilePixelRatio;
     private tileGeneration;
     /** Called by MapTilerViewController when RasterLayerState changes. */
     onRasterLayerUpdate: ((state: RasterLayerState | null) => Promise<void>) | null;
