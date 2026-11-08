@@ -5,7 +5,7 @@ import type { MapTilerMarkerController } from './marker/MapTilerMarkerController
 import type { MapTilerMarkerEventController } from './marker/MapTilerMarkerEventController';
 import type { MapTilerCircleController } from './circle/MapTilerCircleController';
 import type { MapTilerPolylineController } from './polyline/MapTilerPolylineController';
-import type { MapTilerPolygonConductor } from './polygon/MapTilerPolygonConductor';
+import type { MapTilerPolygonController } from './polygon/MapTilerPolygonController';
 import type { MapTilerGroundImageController } from './groundimage/MapTilerGroundImageController';
 import type { MapTilerRasterLayerController } from './raster/MapTilerRasterLayerController';
 
@@ -27,7 +27,7 @@ export interface MapEventDeps {
   readonly markerEventController: MapTilerMarkerEventController;
   readonly circleController: MapTilerCircleController;
   readonly polylineController: MapTilerPolylineController;
-  readonly polygonController: MapTilerPolygonConductor;
+  readonly polygonController: MapTilerPolygonController;
   readonly groundImageController: MapTilerGroundImageController;
   readonly rasterLayerController: MapTilerRasterLayerController;
   getCameraPosition(): MapCameraPosition | null;
