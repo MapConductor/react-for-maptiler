@@ -29,7 +29,7 @@ import { MapTilerCircleOverlayRenderer } from './circle/MapTilerCircleOverlayRen
 import { MapTilerPolylineController } from './polyline/MapTilerPolylineController';
 import { MapTilerPolylineLayer, type MapTilerActualPolyline } from './polyline/MapTilerPolylineLayer';
 import { MapTilerPolylineOverlayRenderer } from './polyline/MapTilerPolylineOverlayRenderer';
-import { MapTilerPolygonConductor } from './polygon/MapTilerPolygonConductor';
+import { MapTilerPolygonController } from './polygon/MapTilerPolygonController';
 import { MapTilerPolygonLayer, type MapTilerActualPolygon } from './polygon/MapTilerPolygonLayer';
 import { MapTilerPolygonOverlayRenderer } from './polygon/MapTilerPolygonOverlayRenderer';
 import { MapTilerGroundImageController } from './groundimage/MapTilerGroundImageController';
@@ -226,11 +226,11 @@ function getPolylineController(
 function getPolygonController(
   holder: MapTilerMapViewHolder,
   canEditStyle: () => boolean,
-): MapTilerPolygonConductor {
+): MapTilerPolygonController {
   const polygonManager = new PolygonManager<MapTilerActualPolygon>();
   const layer = new MapTilerPolygonLayer({ holder, canEditStyle });
   const renderer = new MapTilerPolygonOverlayRenderer({ layer, polygonManager, holder });
-  return new MapTilerPolygonConductor(renderer);
+  return new MapTilerPolygonController(renderer);
 }
 
 function getGroundImageController(
