@@ -33,7 +33,7 @@ import { MapTilerMarkerController } from './marker/MapTilerMarkerController';
 import { MapTilerMarkerEventController } from './marker/MapTilerMarkerEventController';
 import { MapTilerCircleController } from './circle/MapTilerCircleController';
 import { MapTilerPolylineController } from './polyline/MapTilerPolylineController';
-import { MapTilerPolygonConductor } from './polygon/MapTilerPolygonConductor';
+import { MapTilerPolygonController } from './polygon/MapTilerPolygonController';
 import { MapTilerGroundImageController } from './groundimage/MapTilerGroundImageController';
 import { MapTilerRasterLayerController } from './raster/MapTilerRasterLayerController';
 import { installMapEventListeners } from './MapTilerViewControllerEvents';
@@ -68,7 +68,7 @@ export class MapTilerViewController
   private readonly markerEventController: MapTilerMarkerEventController;
   private readonly circleController: MapTilerCircleController;
   private readonly polylineController: MapTilerPolylineController;
-  private readonly polygonController: MapTilerPolygonConductor;
+  private readonly polygonController: MapTilerPolygonController;
   private readonly groundImageController: MapTilerGroundImageController;
   private readonly rasterLayerController: MapTilerRasterLayerController;
 
@@ -78,7 +78,7 @@ export class MapTilerViewController
     markerEventController: MapTilerMarkerEventController,
     circleController: MapTilerCircleController,
     polylineController: MapTilerPolylineController,
-    polygonController: MapTilerPolygonConductor,
+    polygonController: MapTilerPolygonController,
     groundImageController: MapTilerGroundImageController,
     rasterLayerController: MapTilerRasterLayerController,
     styleReadyRef: { current: boolean } = { current: true },
@@ -261,12 +261,14 @@ export class MapTilerViewController
   // --- Lifecycle ---
 
   async clearOverlays(): Promise<void> {
-    await this.markerController.clear();
-    await this.circleController.clear();
-    await this.polylineController.clear();
-    await this.polygonController.clear();
-    this.groundImageController.clear();
-    await this.rasterLayerController.clear();
+    await this.clearOverlayControllers([
+      this.markerController,
+      this.circleController,
+      this.polylineController,
+      this.polygonController,
+      this.groundImageController,
+      this.rasterLayerController,
+    ]);
   }
 
   /**
