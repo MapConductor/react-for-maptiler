@@ -13,14 +13,14 @@ import {
 import {
   useMapViewStyle,
   useCameraRestriction,
-  useMapUISettings, usePolylineTilingOptions,
+  useMapUISettings, usePolylineTilingOptions, useCircleTilingOptions,
   useMarkerRenderingSupport,
   useVectorStyleMutationSupport,
 } from '@mapconductor/js-sdk-react/internal';
 import {
   MapViewBaseProps,
   OverlayCollector,
-  MarkerTilingOptions, PolylineTilingOptions,
+  MarkerTilingOptions, PolylineTilingOptions, CircleTilingOptions,
   MapProjection,
   type GeoRectBounds,
   type MapCameraPosition,
@@ -52,6 +52,12 @@ export interface MapTilerMapViewProps extends MapViewBaseProps<MapTilerViewState
    * handed to the map.
    */
   polylineTilingOptions?: PolylineTilingOptions;
+  /**
+   * When to draw circles as raster tiles ({@link CircleTilingOptions.Default} if omitted).
+   * Read when the map is created; a later value applies from the next time the circles are
+   * handed to the map.
+   */
+  circleTilingOptions?: CircleTilingOptions;
   /**
    * 投影法。省略時は 3D 版が Globe、2D 版が Mercator。
    * android-sdk / ios-sdk の `projection: MapProjection` と同じ役割で、
@@ -91,6 +97,7 @@ function InternalMapTilerMapView({
   children,
   markerTilingOptions,
   polylineTilingOptions,
+  circleTilingOptions,
 }: InternalMapTilerMapViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [provider] = useState(() => new MapTilerProvider());
@@ -141,6 +148,7 @@ function InternalMapTilerMapView({
       initCameraPosition: state.cameraPosition,
       markerTilingOptions,
       polylineTilingOptions,
+      circleTilingOptions,
     };
 
     provider
@@ -256,6 +264,7 @@ function InternalMapTilerMapView({
 
   useMapUISettings(state, controller);
   usePolylineTilingOptions(controller, polylineTilingOptions);
+  useCircleTilingOptions(controller, circleTilingOptions);
   // マップ生成時 config だけでなく、prop の変化にも追随させる（android-sdk 相当）。
   useCameraRestriction(controller, { cameraRestriction, restrictBounds, minZoom, maxZoom });
 

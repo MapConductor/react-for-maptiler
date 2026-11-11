@@ -4,7 +4,7 @@ import {
   MapProjection,
   MapProvider,
   MarkerManager,
-  MarkerTilingOptions, PolylineTiler, PolylineTilingOptions,
+  MarkerTilingOptions, PolylineTiler, PolylineTilingOptions, CircleTiler, CircleTilingOptions,
   PolygonManager,
   PolylineManager,
   type GeoRectBounds,
@@ -55,6 +55,11 @@ export interface MapTilerConfig extends MapConfig {
    * The controller's `setPolylineTilingOptions` replaces it later.
    */
   polylineTilingOptions?: PolylineTilingOptions;
+  /**
+   * When to draw circles as raster tiles; {@link CircleTilingOptions.Default} if omitted.
+   * The controller's `setCircleTilingOptions` replaces it later.
+   */
+  circleTilingOptions?: CircleTilingOptions;
 }
 
 function toLngLatBounds(bounds: GeoRectBounds | undefined): maplibregl.LngLatBoundsLike | undefined {
@@ -146,6 +151,9 @@ export class MapTilerProvider extends MapProvider {
     // Many polylines are drawn as tiles by the tile service worker and shown as one raster
     // layer (the view controller mounts it); taps still resolve against the original paths.
     polylineController.tiler = new PolylineTiler(config.polylineTilingOptions ?? PolylineTilingOptions.Default);
+    // Many circles are drawn as tiles too, shown as one raster layer at the bottom of the circle
+    // band (the view controller mounts it); taps still resolve against the original circles.
+    circleController.tiler = new CircleTiler(config.circleTilingOptions ?? CircleTilingOptions.Default);
     const polygonController = getPolygonController(holder, canEditStyle);
     const groundImageController = getGroundImageController(holder, canEditStyle);
     const rasterLayerController = getRasterLayerController(holder, canEditStyle);
