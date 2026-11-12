@@ -120,6 +120,8 @@ export class MapTilerProvider extends MapProvider {
 
     // Track map immediately so destroy() can remove it even before load fires
     this.map = map;
+    // MapOptions にはパディングの口が無いので、作った直後に入れる。
+    if (initialCamera?.padding) map.setPadding(initialCamera.padding);
 
     await new Promise<void>((resolve, reject) => {
       map.once('load', () => {
