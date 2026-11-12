@@ -540,6 +540,14 @@ declare class MapTilerViewController extends BaseMapViewController implements Ma
     private readonly apiKey;
     private initialized;
     private logicalTiltHint;
+    /**
+     * The paddings the app asked for. The engine's own `padding` is left at zero:
+     * it widens the frustum toward the top, so under tilt a large top padding
+     * reaches past the horizon and the engine loads tiles out to it (the map
+     * stalls). Shifting the camera centre instead puts the target at the padded
+     * centre with the frustum the engine would draw without padding.
+     */
+    private cameraPaddings;
     private readonly styleReadyRef;
     /** 現在の投影法。android-sdk の MapboxMapViewController の projection と同じ役割。 */
     private projection;
@@ -576,6 +584,9 @@ declare class MapTilerViewController extends BaseMapViewController implements Ma
     animateCamera(position: MapCameraPosition, durationMillis: number): Promise<boolean>;
     fitBounds(bounds: GeoRectBounds, padding: number): Promise<boolean>;
     getCameraPosition(): MapCameraPosition | null;
+    /** Moves the camera centre so the target lands at the padded-area centre; the engine's padding stays zero. */
+    private withPaddedCenter;
+    private canvasSize;
     compositionMarkers(data: MarkerState[]): Promise<void>;
     updateMarker(state: MarkerState): Promise<void>;
     setOnMarkerClickListener(_listener: OnMarkerEventHandler | null): void;
