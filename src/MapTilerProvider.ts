@@ -4,7 +4,7 @@ import {
   MapProjection,
   MapProvider,
   MarkerManager,
-  MarkerTilingOptions,
+  MarkerTilingOptions, PolylineTiler, PolylineTilingOptions, CircleTiler, CircleTilingOptions,
   PolygonManager,
   PolylineManager,
   type GeoRectBounds,
@@ -29,7 +29,7 @@ import { MapTilerCircleOverlayRenderer } from './circle/MapTilerCircleOverlayRen
 import { MapTilerPolylineController } from './polyline/MapTilerPolylineController';
 import { MapTilerPolylineLayer, type MapTilerActualPolyline } from './polyline/MapTilerPolylineLayer';
 import { MapTilerPolylineOverlayRenderer } from './polyline/MapTilerPolylineOverlayRenderer';
-import { MapTilerPolygonConductor } from './polygon/MapTilerPolygonConductor';
+import { MapTilerPolygonController } from './polygon/MapTilerPolygonController';
 import { MapTilerPolygonLayer, type MapTilerActualPolygon } from './polygon/MapTilerPolygonLayer';
 import { MapTilerPolygonOverlayRenderer } from './polygon/MapTilerPolygonOverlayRenderer';
 import { MapTilerGroundImageController } from './groundimage/MapTilerGroundImageController';
@@ -50,6 +50,16 @@ export interface MapTilerConfig extends MapConfig {
   restrictBounds?: GeoRectBounds;
   projection?: MapProjection;
   markerTilingOptions?: MarkerTilingOptions;
+  /**
+   * When to draw polylines as raster tiles; {@link PolylineTilingOptions.Default} if omitted.
+   * The controller's `setPolylineTilingOptions` replaces it later.
+   */
+  polylineTilingOptions?: PolylineTilingOptions;
+  /**
+   * When to draw circles as raster tiles; {@link CircleTilingOptions.Default} if omitted.
+   * The controller's `setCircleTilingOptions` replaces it later.
+   */
+  circleTilingOptions?: CircleTilingOptions;
 }
 
 function toLngLatBounds(bounds: GeoRectBounds | undefined): maplibregl.LngLatBoundsLike | undefined {
@@ -110,6 +120,7 @@ export class MapTilerProvider extends MapProvider {
 
     // Track map immediately so destroy() can remove it even before load fires
     this.map = map;
+    // paddings are applied by the controller (camera-centre shift) on its first move, not as engine padding.
 
     await new Promise<void>((resolve, reject) => {
       map.once('load', () => {
@@ -138,6 +149,12 @@ export class MapTilerProvider extends MapProvider {
     const markerEventController = new MapTilerMarkerEventController(markerController);
     const circleController = getCircleController(holder, canEditStyle);
     const polylineController = getPolylineController(holder, canEditStyle);
+    // Many polylines are drawn as tiles by the tile service worker and shown as one raster
+    // layer (the view controller mounts it); taps still resolve against the original paths.
+    polylineController.tiler = new PolylineTiler(config.polylineTilingOptions ?? PolylineTilingOptions.Default);
+    // Many circles are drawn as tiles too, shown as one raster layer at the bottom of the circle
+    // band (the view controller mounts it); taps still resolve against the original circles.
+    circleController.tiler = new CircleTiler(config.circleTilingOptions ?? CircleTilingOptions.Default);
     const polygonController = getPolygonController(holder, canEditStyle);
     const groundImageController = getGroundImageController(holder, canEditStyle);
     const rasterLayerController = getRasterLayerController(holder, canEditStyle);
@@ -226,11 +243,11 @@ function getPolylineController(
 function getPolygonController(
   holder: MapTilerMapViewHolder,
   canEditStyle: () => boolean,
-): MapTilerPolygonConductor {
+): MapTilerPolygonController {
   const polygonManager = new PolygonManager<MapTilerActualPolygon>();
   const layer = new MapTilerPolygonLayer({ holder, canEditStyle });
   const renderer = new MapTilerPolygonOverlayRenderer({ layer, polygonManager, holder });
-  return new MapTilerPolygonConductor(renderer);
+  return new MapTilerPolygonController(renderer);
 }
 
 function getGroundImageController(
